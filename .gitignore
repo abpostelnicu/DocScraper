@@ -11,6 +11,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+documents/
 downloads/
 eggs/
 .eggs/
@@ -19,6 +20,8 @@ lib64/
 parts/
 sdist/
 var/
+.vscode/
+*.yml
 wheels/
 pip-wheel-metadata/
 share/python-wheels/
