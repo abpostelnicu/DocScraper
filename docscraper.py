@@ -1,5 +1,4 @@
 import requests
-from bs4 import BeautifulSoup
 from urllib.request import unquote
 import argparse
 import yaml
@@ -35,29 +34,20 @@ def process_site(site_name, url, definition, driver):
     try:
         driver.get(url)
     except Exception as _:
+        print("Exception for {}".format(url))
         return
 
-    content = BeautifulSoup(driver.page_source, "lxml")
+    elems = driver.find_elements_by_xpath("//a[@href]")
 
-    # extract URLs referencing PDF documents
-    all_urls = content.find_all("a")
+    links = list()
 
-    # loop over all URLs
-    for url in all_urls:
-        href = url.get("href", None)
-        if href is None:
-            continue
+    # Cache hrefs since dom is going to be modified once we do driver.geturl(...)
+    for elem in elems:
+        href = elem.get_attribute("href")
+        if len(href) > 0:
+            links.append(elem.get_attribute("href"))
 
-        href = url["href"]
-        valid = validators.url(href)
-
-        if valid is not True:
-            # compose link
-            url_parsed = urlparse(definition["url"])
-            href = url_parsed.scheme + "://" + url_parsed.hostname + href
-            if validators.url(href) is False:
-                continue
-
+    for href in links:
         # Did we analyze this?
         if already_visited.get(href, None) is not None:
             # yes we did
