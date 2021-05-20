@@ -1,10 +1,11 @@
-from urllib.parse import urlparse
 import argparse
-import yaml
-import os
-from selenium import webdriver
 import logging
+import os
+from urllib.parse import urlparse
+
 import wget
+import yaml
+from selenium import webdriver
 
 already_visited = dict()
 
