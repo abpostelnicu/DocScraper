@@ -84,10 +84,10 @@ def process_site(site_name, url, definition, driver):
             process_site(site_name, href, definition, driver)
 
 
-def get_driver_options(drive_options):
+def get_driver_options(driver_options):
     driver_options.headless = True
 
-    return drive_options
+    return driver_options
 
 
 def process(yml):
@@ -96,22 +96,24 @@ def process(yml):
         exit(1)
 
     # Try different drivers, the order is:
-    # 1. Firefox
-    # 2. Chrome
+    # 1. Chrome
+    # 2. Firefox - this has some issues when DOM has some unbounded elements, see https://bugzilla.mozilla.org/show_bug.cgi?id=818823
     try:
-        from selenium.webdriver.firefox.options import Options
+        from selenium.webdriver.chrome.options import Options
 
-        drive_options = Options()
+        driver_options = Options()
         # Start selenium driver
-        driver = webdriver.Firefox(options=get_driver_options(drive_options))
-
+        driver = webdriver.Chrome(options=get_driver_options(driver_options))
     except Exception as _:
         try:
-            from selenium.webdriver.chrome.options import Options
+            from selenium.webdriver.firefox.options import Options
 
-            drive_options = Options()
+            driver_options = Options()
+            driver_options = get_driver_options(driver_options)
+
             # Start selenium driver
-            driver = webdriver.Chrome(options=get_driver_options(drive_options))
+            driver = webdriver.Firefox(options=driver_options)
+
         except Exception as _:
             print("Unable to init web driver, tried Firefox and Chrome.")
             exit(1)
