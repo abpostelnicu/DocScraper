@@ -1,4 +1,3 @@
-import requests
 from urllib.parse import urlparse
 import argparse
 import yaml
@@ -7,10 +6,7 @@ from selenium import webdriver
 import logging
 import wget
 
-
-
 already_visited = dict()
-
 
 def download(link, definition):
     # extract the filename
