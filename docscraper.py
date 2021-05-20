@@ -9,7 +9,17 @@ from selenium import webdriver
 
 already_visited = dict()
 
-def download(link, definition):
+logger = logging.getLogger("doc-scraper")
+
+
+def download(link, definition, spaces):
+    """Download utility from an url.
+
+    :param link: path for of the file that is going to be downloaded
+    :param definition: definition from the config file, in order to determine path where the downloaded file will be stored
+    :return:  1 on failure, 0 otherwise
+    """
+
     # extract the filename
     filename = os.path.basename(urlparse(link).path)
 
@@ -19,7 +29,14 @@ def download(link, definition):
     # Create dirs
     os.makedirs(path, exist_ok=True)
 
-    wget.download(link, os.path.join(path, filename))
+    try:
+        logger.info(spaces + "-> Downloading {0}".format(filename))
+        wget.download(link, os.path.join(path, filename), bar=None)
+    except Exception as e:
+        logger.error(spaces + "-> Unable to download {0} with error {1}".format(link, e))
+        return 1
+
+    return 0
 
 
 def has_document(link, definition):
@@ -29,19 +46,19 @@ def has_document(link, definition):
             return True
 
 
-def process_site(site_name, url, definition, driver):
+def process_site(site_name, url, definition, driver, spaces=""):
     try:
         driver.get(url)
     except Exception as _:
-        logging.error("Exception for {}".format(url))
+        logger.error("Exception for {}".format(url))
         return
 
-    elems = driver.find_elements_by_xpath("//a[@href]")
+    elements = driver.find_elements_by_xpath("//a[@href]")
 
     links = list()
 
     # Cache hrefs since dom is going to be modified once we do driver.geturl(...)
-    for elem in elems:
+    for elem in elements:
         retries = 4
         href = None
         while retries > 0:
@@ -64,18 +81,18 @@ def process_site(site_name, url, definition, driver):
             continue
         already_visited[href] = True
 
-        logging.info("Analyze for: {}".format(href))
+        logger.info(spaces + "-> Analyze for: {}".format(href))
 
         if has_document(href, definition):
-            logging.info("Found document: {}".format(href))
-            download(href, definition)
+            logger.info(spaces + "-> Found document: {}".format(href))
+            download(href, definition, spaces)
         else:
             # Do not cross-site
             # This is sub-optimal, should be redone
             if site_name not in href:
-                logging.info("Skip {}".format(href))
+                logger.info(spaces + "-> Skip {}".format(href))
                 continue
-            process_site(site_name, href, definition, driver)
+            process_site(site_name, href, definition, driver, spaces + " ")
 
 
 def get_driver_options(driver_options):
@@ -87,6 +104,7 @@ def get_driver_options(driver_options):
 def process(yml):
     sites = yml.get("sites", None)
     if sites is None:
+        logger.error("`sites` from yaml config file is empty, nothing to do.")
         exit(1)
 
     # Try different drivers, the order is:
@@ -109,7 +127,7 @@ def process(yml):
             driver = webdriver.Firefox(options=driver_options)
 
         except Exception as _:
-            logging.error("Unable to init web driver, tried Firefox and Chrome.")
+            logger.error("Unable to init web driver, tried Firefox and Chrome.")
             exit(1)
 
     for site in sites:
@@ -127,12 +145,27 @@ def main():
     parser.add_argument("path", help="File path using YML format for links specifier.")
     args = parser.parse_args()
 
-    # Maybe we can do this to be set dynamic, from the cli
-    logging.basicConfig(level=logging.INFO)
+    # create formatter
+    formatter = logging.Formatter('%(message)s')
+
+    logger.setLevel(logging.DEBUG)
+
+    # create console handler and set level to info
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+
+    # create formatter
+    formatter = logging.Formatter('%(message)s')
+
+    # add formatter to ch
+    ch.setFormatter(formatter)
+
+    # add ch to logger
+    logger.addHandler(ch)
 
     # Verify to see if the path exists
     if os.path.isfile(args.path) is False:
-        logging.error("{} cannot be found.".format(args.path))
+        logger.error("{} cannot be found.".format(args.path))
         exit(1)
 
     # Open and read the contents of args.path
