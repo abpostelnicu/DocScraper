@@ -12,6 +12,23 @@ source .venv/scraper/bin/activate
 pip3 install -r requirements.txt
 ``````
 
+This script uses selenium WebDriver for the crawling capabilities and for this two types of drivers are supported, Chrome and Firefox, the first one if preferred due to a bug in Firefox.
+At least on of the two browsers need to be installed in it's binary has to be set in `$PATH`. Also it's corresponding driver has to be also installed, `chromedriver` for Chrome and `geckodriver` for Firefox.
+
+## MacOS
+The two drivers aforementioned are available through [Homebrew](https://brew.sh) and they can be installed as follows:
+``````shell
+brew install chromedriver
+brew install geckodriver
+``````
+
+## Linux like OS
+* [geckodriver](https://github.com/mozilla/geckodriver)
+* [chromedriver](https://chromedriver.chromium.org)
+
+## Windows
+Has not been tested yet, please feel free to contribute with a PR.
+
 # Usage
 
 The script uses a configuration `yaml`, the grammar of the configuration file is as follows:
