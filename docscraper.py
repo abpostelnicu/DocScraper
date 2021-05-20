@@ -1,10 +1,11 @@
 import requests
-from urllib.request import unquote
+from urllib.parse import urlparse
 import argparse
 import yaml
 import os
 from selenium import webdriver
 import logging
+import wget
 
 
 
@@ -12,10 +13,8 @@ already_visited = dict()
 
 
 def download(link, definition):
-    document = requests.get(link)
-
-    # extract  PDF file name
-    filename = unquote(link.split("/")[-1].replace(" ", "_"))
+    # extract the filename
+    filename = os.path.basename(urlparse(link).path)
 
     # Create path
     path = os.path.join(os.path.abspath(os.getcwd()), "documents", definition["path"])
@@ -23,10 +22,7 @@ def download(link, definition):
     # Create dirs
     os.makedirs(path, exist_ok=True)
 
-    # write PDF to local file
-    with open(os.path.join(path, filename), "wb") as f:
-        # write PDF to local file
-        f.write(document.content)
+    wget.download(link, os.path.join(path, filename))
 
 
 def has_document(link, definition):
