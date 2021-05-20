@@ -4,7 +4,8 @@ import argparse
 import yaml
 import os
 from selenium import webdriver
-from urllib.parse import urlparse
+import logging
+
 
 
 already_visited = dict()
@@ -39,7 +40,7 @@ def process_site(site_name, url, definition, driver):
     try:
         driver.get(url)
     except Exception as _:
-        print("Exception for {}".format(url))
+        logging.error("Exception for {}".format(url))
         return
 
     elems = driver.find_elements_by_xpath("//a[@href]")
@@ -70,16 +71,16 @@ def process_site(site_name, url, definition, driver):
             continue
         already_visited[href] = True
 
-        print("Analyze for: {}".format(href))
+        logging.info("Analyze for: {}".format(href))
 
         if has_document(href, definition):
-            print("Found document: {}".format(href))
+            logging.info("Found document: {}".format(href))
             download(href, definition)
         else:
             # Do not cross-site
             # This is sub-optimal, should be redone
             if site_name not in href:
-                print("Skip {}".format(href))
+                logging.info("Skip {}".format(href))
                 continue
             process_site(site_name, href, definition, driver)
 
@@ -115,7 +116,7 @@ def process(yml):
             driver = webdriver.Firefox(options=driver_options)
 
         except Exception as _:
-            print("Unable to init web driver, tried Firefox and Chrome.")
+            logging.error("Unable to init web driver, tried Firefox and Chrome.")
             exit(1)
 
     for site in sites:
@@ -133,9 +134,13 @@ def main():
     parser.add_argument("path", help="File path using YML format for links specifier.")
     args = parser.parse_args()
 
+    # Maybe we can do this to be set dynamic, from the cli
+    logging.basicConfig(level=logging.INFO)
+
     # Verify to see if the path exists
     if os.path.isfile(args.path) is False:
-        print("{} cannot be found.".format(args.path))
+        logging.error("{} cannot be found.".format(args.path))
+        exit(1)
 
     # Open and read the contents of args.path
     with open(args.path) as file:
