@@ -16,7 +16,8 @@ def download(link, definition, spaces):
     """Download utility from an url.
 
     :param link: path for of the file that is going to be downloaded
-    :param definition: definition from the config file, in order to determine path where the downloaded file will be stored
+    :param definition: definition from the config file, in order to determine
+    path where the downloaded file will be stored
     :return:  1 on failure, 0 otherwise
     """
 
@@ -33,7 +34,9 @@ def download(link, definition, spaces):
         logger.info(spaces + "-> Downloading {0}".format(filename))
         wget.download(link, os.path.join(path, filename), bar=None)
     except Exception as e:
-        logger.error(spaces + "-> Unable to download {0} with error {1}".format(link, e))
+        logger.error(
+            spaces + "-> Unable to download {0} with error {1}".format(link, e)
+        )
         return 1
 
     return 0
@@ -68,9 +71,6 @@ def process_site(site_name, url, definition, driver, spaces=""):
             except Exception as _:
                 pass
 
-        if href is None:
-            i = 0
-            i = i + 1
         if href is not None and len(href) > 0:
             links.append(elem.get_attribute("href"))
 
@@ -146,7 +146,7 @@ def main():
     args = parser.parse_args()
 
     # create formatter
-    formatter = logging.Formatter('%(message)s')
+    formatter = logging.Formatter("%(message)s")
 
     logger.setLevel(logging.DEBUG)
 
@@ -155,7 +155,7 @@ def main():
     ch.setLevel(logging.INFO)
 
     # create formatter
-    formatter = logging.Formatter('%(message)s')
+    formatter = logging.Formatter("%(message)s")
 
     # add formatter to ch
     ch.setFormatter(formatter)
