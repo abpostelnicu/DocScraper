@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import re
 from urllib.parse import urlparse
 
 import wget
@@ -49,7 +50,7 @@ def has_document(link, definition):
             return True
 
 
-def process_site(site_name, url, definition, driver, spaces=""):
+def process_site(site_limit, url, definition, driver, spaces=""):
     try:
         driver.get(url)
     except Exception as _:
@@ -88,11 +89,10 @@ def process_site(site_name, url, definition, driver, spaces=""):
             download(href, definition, spaces)
         else:
             # Do not cross-site
-            # This is sub-optimal, should be redone
-            if site_name not in href:
+            if re.search(site_limit, href) is None:
                 logger.info(spaces + "-> Skip {}".format(href))
                 continue
-            process_site(site_name, href, definition, driver, spaces + " ")
+            process_site(site_limit, href, definition, driver, spaces + " ")
 
 
 def get_driver_options(driver_options):
